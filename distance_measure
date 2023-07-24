@@ -1,0 +1,132 @@
+    
+    %
+    fc = 30e9;
+    c = 3e8;
+    lambda = c/fc;
+    d = lambda/2;
+    
+    N =64;
+
+    rho_max = 2 * (d*N)^2 / lambda;
+    rho_min = 0.5 * sqrt( (N*d)^3/lambda );
+ 
+    s = 1;
+    c = 3e8;
+    D = s * N;
+
+    theta = -1+ 2/D : 2/D :  1;
+
+    beta = 1.6;
+    dict = cell( D, 1 );
+    label = cell( D, 1);
+    Zmax = (N * d)^2 / 2 / lambda / beta^2;
+
+    kmax = floor(Zmax/rho_min);
+
+
+    sampling_point_x = [];
+    sampling_point_y = [];
+
+    x = 1;
+    y = 1;
+
+
+
+    for idx = 1:D
+
+        Z = (N * d)^2 * ( 1 - theta(idx)^2) / 2 / lambda / beta^2;
+
+        kmax = floor(Z/rho_min);
+        kmin = floor(Z/rho_max) + 1;
+        
+        r = zeros(1, kmax - kmin + 2);
+
+        r(:,1) = (N * d)^2 * 2 / lambda ;
+        r(:,2:end) = Z./(kmin:kmax);
+        
+        dict{idx} = zeros(N, kmax + 1);
+        label{idx} = zeros(2, kmax + 1);
+
+        for t = 1 : kmax - kmin + 2
+            dict{idx}(:, t) = polar_domain_manifold( N, d, c/lambda, r(t), asin(theta(idx)) );
+            label{idx}(:, t) = [theta(idx), r(t)]';
+
+           sampling_point_x(x) = r(t)*cos(asin(theta(idx)) + pi/2);
+           sampling_point_y(y) = r(t)*sin(asin(theta(idx)) + pi/2);
+           
+
+          
+          x = x+1;
+          y = y+1;
+
+        end
+
+    end
+    dict = merge(dict, D, N); % converted to matrix  
+    label = merge(label, D, 2); % converted to matrix
+
+
+x1 = 0.234375;
+y1 = 0.90773;
+x2 = 0.46875;
+y2 = 1.81546;
+
+% Number of points to be generated
+num_points = 100;
+
+% Calculate the slope between (x1, y1) and (x2, y2)
+slope = (y2 - y1) / (x2 - x1);
+
+% Generate x-coordinates for the points
+x_p = linspace(x1, x2, num_points);
+
+% Generate y-coordinates using linear interpolation
+y_p = y1 + slope * (x_p - x1);
+
+
+
+
+
+data = [];
+
+
+for j = 1: 100
+    x_s = x_p(j);
+    y_s = y_p(j);
+
+
+    distance_channel = sqrt(sum(([0,0] - [x_s,y_s]).^2,2));
+    theta_channel = atan2(y_s, x_s) - (pi/2);
+
+    channel_codebook =  polar_domain_manifold( N, d, c/lambda, distance_channel, (theta_channel));
+
+    product = channel_codebook  * conj(dict);  
+
+    [~,column] = max(product);
+    data(j) = column;
+
+
+
+end
+
+
+
+
+function  at = polar_domain_manifold( Nt, d, f, r0, theta0 )
+    c = 3e8;
+    nn = -(Nt-1)/2:1:(Nt-1)/2;
+    r = r0 - nn * d * sin(theta0) + nn.^2 * d^2 * cos(theta0)^2 ./ 2 /r0;
+    at = exp(-1j*2*pi*f*(r - r0)/c)/sqrt(Nt);
+end
+
+
+function B = merge(A, D, Q)
+    S = zeros(1, D);
+    for idx = 1 : D
+        S(idx) = size(A{idx}, 2);
+    end
+    B = zeros(Q, sum(S));
+    for idx = 1 : D
+        B(:, sum(S(1:idx)) - S(idx) + 1: sum(S(1:idx))) = A{idx};
+    end
+end
