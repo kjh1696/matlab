@@ -1,0 +1,23 @@
+% Given slopes
+x1 = 0.3149;
+y1 = 1.2195;
+x2 = 0.4688;
+y2 = 1.8155;
+
+% Number of intermediate points to be generated
+num_points = 2;
+
+% Calculate the x and y coordinates for the intermediate points
+x_intermediate = linspace(x1, x2, num_points + 2); % Add 2 for the original points x1 and x2
+y_intermediate = y1 + (x_intermediate - x1) * ((y2 - y1) / (x2 - x1));
+
+% The two intermediate points are the second and third points in the generated arrays
+x_intermediate_points = x_intermediate(2:end-1);
+y_intermediate_points = y_intermediate(2:end-1);
+
+% Display the intermediate points
+disp('Intermediate Points:');
+disp('Point 1:');
+disp(['x: ', num2str(x_intermediate_points(1)), ', y: ', num2str(y_intermediate_points(1))]);
+disp('Point 2:');
+disp(['x: ', num2str(x_intermediate_points(2)), ', y: ', num2str(y_intermediate_points(2))]);
