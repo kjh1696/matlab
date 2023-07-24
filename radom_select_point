@@ -1,0 +1,13 @@
+x1 = 0.3149;
+y1 = 1.2195;
+x2 = 0.4688;
+y2 = 1.8155;
+
+% Number of points to be generated
+num_points = 2;
+
+% Generate random x-coordinates between x1 and x2
+x_random = x1 + rand(1, num_points) * (x2 - x1);
+
+% Calculate corresponding y-coordinates using linear interpolation
+y_random = y1 + (x_random - x1) * ((y2 - y1) / (x2 - x1));
